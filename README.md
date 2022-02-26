@@ -18,8 +18,9 @@ To spin up development server:
     - ':8000' is for port 8000
     - ctrl-c (stops the server)
 
-
-
+- python manage.py makemigrations
+- python manage.py migrate
+- python manage.py createsuperuser
 
 
 # When creating project
