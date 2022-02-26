@@ -24,17 +24,6 @@ class PlaylistPairsViewSet(viewsets.ModelViewSet):
             serializerResponse = serializer.save()
             # name = serializer.validated_data.get('name')
             # message = f'Hello {name}!'
-            models.PlaylistPairs.objects.create(
-                apple_token_1=modelData["apple_token_1"],
-                apple_token_2=modelData["apple_token_2"],
-                apple_token_3=modelData["apple_token_3"],
-                spotify_token_1=modelData["spotify_token_1"],
-                spotify_token_2=modelData["spotify_token_2"],
-                spotify_token_3=modelData["spotify_token_3"],
-                apple_playlist_id=modelData["apple_playlist_id"],
-                spotify_playlist_id=modelData["spotify_playlist_id"]
-            )
-
             sync.StartSync.get_playlist_songs(models.PlaylistPairs.objects.get(pk=serializerResponse.pk));
             return Response({'message': 'sucessful!'})
         else:
