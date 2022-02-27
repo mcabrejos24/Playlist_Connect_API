@@ -6,50 +6,44 @@ from decouple import config
 
 class StartSync():
     """Does the initial sync for the playlists"""
-    # spotify_playlist_url = f'https://api.music.apple.com/v1/me/library/playlists'
     spotify_url = 'https://api.spotify.com/v1/playlists/'
     apple_url = 'https://api.music.apple.com/v1/me/library/playlists/'
+    apple_isrc_url = 'https://api.music.apple.com/v1/catalog/us/songs/'
+
+    @staticmethod
+    def api_get(service, url, header):
+        response = requests.get(url, headers=header);
+        if not response:
+            print(f'Failed in making {service} GET call, url: {url}')
+            return
+        return json.loads(response.content)
 
     def get_apple_isrc(song_ids, header):
-        url = 'https://api.music.apple.com/v1/catalog/us/songs/'
         isrc = set()
         for id in song_ids:
-            response = requests.get(url+id, headers=header);
-            if not response:
-                print('Failed to get ISRC')
-                return
-            response_json = json.loads(response.content)
+            response_json = StartSync.api_get('apple isrc', StartSync.apple_isrc_url+id, header)
             isrc.add(response_json['data'][0]['attributes']['isrc'])
-
-
         return isrc
 
     @staticmethod
     def get_playlist_songs(service, url, header, playlist_id):
         response_json = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
-
         songs_isrc = set()
-        if service == 'spotify':
+
+        # spotify returns songs with a attribute of isrc
+        if service == 'spotify': 
             for song in response_json['items']:
                 if song['track'] and song['track']['external_ids'] and song['track']['external_ids']['isrc']:
                     songs_isrc.add(song['track']['external_ids']['isrc'])
-            return songs_isrc
+        # apple music returns songs with an id that then need to be used to find the isrc in another call, hence function get_apple_isrc() is used
         elif service == 'apple':
             apple_song_ids = set()
             for song in response_json['data']:
                 if song['attributes'] and song['attributes']['playParams'] and song['attributes']['playParams']['catalogId']:
                     apple_song_ids.add(song['attributes']['playParams']['catalogId'])
                 songs_isrc = StartSync.get_apple_isrc(apple_song_ids, header)
-            return songs_isrc
-        return ['FAILED TO GET ANY SONG ISRC CODES']
 
-    @staticmethod
-    def api_get(service, url, header):
-        res = requests.get(url, headers=header);
-        if not res:
-            print(f'Failed in making {service} GET call, url: {url}')
-            return
-        return json.loads(res.content)
+        return songs_isrc
 
     @staticmethod
     def api_post(service, url, header, payload):
@@ -107,7 +101,6 @@ class StartSync():
             'music-user-token': apple_auth
         }
 
-
         spotify_songs = StartSync.get_playlist_songs('spotify', StartSync.spotify_url, spotify_header, playlistPairObject.spotify_playlist_id)
         apple_songs = StartSync.get_playlist_songs('apple', StartSync.apple_url, apple_header, playlistPairObject.apple_playlist_id)
 
@@ -118,7 +111,4 @@ class StartSync():
         spotify_successful = StartSync.add_playlist_songs_to('spotify', apple_songs-spotify_songs, spotify_header, playlistPairObject.spotify_playlist_id)
         apple_successful = StartSync.add_playlist_songs_to('apple', spotify_songs-apple_songs, apple_header, playlistPairObject.apple_playlist_id)
 
-
-        print(spotify_successful)
-        print(apple_successful)
-        return apple_successful and spotify_successful
+        return [apple_successful, spotify_successful]
