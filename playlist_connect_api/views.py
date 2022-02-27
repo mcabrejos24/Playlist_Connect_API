@@ -1,4 +1,3 @@
-import this
 from rest_framework import viewsets
 from rest_framework.response import Response
 from playlist_connect_api import serializers
@@ -22,7 +21,8 @@ class PlaylistPairsViewSet(viewsets.ModelViewSet):
             serializerResponse = serializer.save()
             # name = serializer.validated_data.get('name')
             # message = f'Hello {name}!'
-            sync.StartSync.get_playlist_songs(models.PlaylistPairs.objects.get(pk=serializerResponse.pk));
+            [response_apple, response_spotify] = sync.StartSync.sync(models.PlaylistPairs.objects.get(pk=serializerResponse.pk));
+            print(response_apple, response_spotify)
             return Response({'message': 'sucessful!'})
         else:
             return Response(
