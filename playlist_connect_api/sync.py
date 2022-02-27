@@ -18,7 +18,8 @@ class StartSync():
             if not response:
                 print('Failed to get ISRC')
                 return
-            response_json = json.loads(response.content.decode('utf8').replace("'", '"'))
+            # response_json = json.loads(response.content.decode('utf8').replace("'", '"'))
+            response_json = json.loads(response.content)
             isrc.add(response_json['data'][0]['attributes']['isrc'])
 
 
@@ -31,7 +32,8 @@ class StartSync():
         if not response:
             print('Failed to get your songs!!!')
             return
-        response_json = json.loads(response.content.decode('utf8').replace("'", '"'))
+        # response_json = json.loads(response.content.decode('utf8').replace("'", '"'))
+        response_json = json.loads(response.content)
 
         songs_isrc = set()
         if service == 'spotify':
@@ -63,7 +65,12 @@ class StartSync():
         if not res:
             print(f'Failed in making get call, url: {url}')
             return
-        return json.loads(res.content.decode('utf8').replace("'", '"'))
+
+        # if service == 'spotify':
+            # print(res.content)
+        # vari = res.content.decode('utf8').replace("'",'"')
+
+        return json.loads(res.content)
 
     @staticmethod
     def api_post(service, url, header, payload):
@@ -74,6 +81,8 @@ class StartSync():
 
     @staticmethod
     def add_playlist_songs_to(service, isrcs, header, playlist_id):
+        if not isrcs:
+            return
         if service == 'apple':
             song_ids = []
             for isrc in isrcs:
@@ -95,8 +104,11 @@ class StartSync():
             uris = []
             for isrc in isrcs:
                 url = f'https://api.spotify.com/v1/search?type=track&q=isrc:{isrc}'
-                print('can we at least get this one')
+                print('------------------- halt ----------------------')
                 response_json = StartSync.api_get(service, url, header)
+                # print('starting to get json')
+                # print(response_json)
+                # print('getting json')
                 if not response_json:
                     print(f'Failed in making getting uris, url: {url}')
                     return
@@ -106,9 +118,14 @@ class StartSync():
             url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
             payload = f'{{"uris": {uris}}}'
             payload = payload.replace("'", '"')
+            
+            print(url)
+            print('printing uris')
+            print(payload)
+            print('end on the print shit')
 
             res = StartSync.api_post(service, url, header, payload)
-            print(res)
+            # print(res)
             return res
         return
 
@@ -133,8 +150,9 @@ class StartSync():
         print(' ')
         print(apple_auth)
 
-        apple_successful = StartSync.add_playlist_songs_to('apple', spotify_songs-apple_songs, apple_header, playlistPairObject.apple_playlist_id)
         spotify_successful = StartSync.add_playlist_songs_to('spotify', apple_songs-spotify_songs, spotify_header, playlistPairObject.spotify_playlist_id)
+        apple_successful = StartSync.add_playlist_songs_to('apple', spotify_songs-apple_songs, apple_header, playlistPairObject.apple_playlist_id)
+
 
         print(spotify_successful)
         print(apple_successful)
