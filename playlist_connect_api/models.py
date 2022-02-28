@@ -1,9 +1,5 @@
 from lib2to3.pytree import Base
 from django.db import models
-# from django.contrib.auth.models import AbstractBaseUser
-# from django.contrib.auth.models import PermissionsMixin
-# from django.contrib.auth.models import BaseUserManager
-# from django.conf import settings
 
 class PlaylistPairs(models.Model):
     """Database Model for Playlist Pairs"""
