@@ -8,20 +8,14 @@ class StartSync():
     """Does the initial sync for the playlists"""
     spotify_url = 'https://api.spotify.com/v1/playlists/'
     apple_url = 'https://api.music.apple.com/v1/me/library/playlists/'
-    apple_isrc_url = 'https://api.music.apple.com/v1/catalog/us/songs/'
-
-    @staticmethod
-    def api_get(service, url, header):
-        response = requests.get(url, headers=header);
-        if not response:
-            print(f'Failed in making {service} GET call, url: {url}')
-            return
-        return json.loads(response.content)
+    apple_to_isrc_url = 'https://api.music.apple.com/v1/catalog/us/songs/'
+    spotify_from_isrc = 'https://api.spotify.com/v1/search?type=track&q=isrc:'
+    apple_from_isrc = 'https://api.music.apple.com/v1/catalog/us/songs?filter[isrc]='
 
     def get_apple_isrc(song_ids, header):
         isrc = set()
         for id in song_ids:
-            response_json = StartSync.api_get('apple isrc', StartSync.apple_isrc_url+id, header)
+            response_json = StartSync.api_get('apple isrc', StartSync.apple_to_isrc_url+id, header)
             isrc.add(response_json['data'][0]['attributes']['isrc'])
         return isrc
 
@@ -47,47 +41,51 @@ class StartSync():
 
     @staticmethod
     def api_post(service, url, header, payload):
-        result = requests.post(url, data=payload, headers=header)
-        return result
+        response = requests.post(url, data=payload, headers=header)
+        if not response:
+            print(f'Failed in making {service} POST call, url: {url}')
+            return
+        return response
 
     @staticmethod
-    def add_playlist_songs_to(service, isrcs, header, playlist_id):
+    def api_get(service, url, header):
+        response = requests.get(url, headers=header);
+        if not response:
+            print(f'Failed in making {service} GET call, url: {url}')
+            return
+        return json.loads(response.content)
+
+    @staticmethod
+    def add_playlist_songs_to(service, url_isrc, isrcs, header, url_playlist, playlist_id):
         if not isrcs:
             return
-        if service == 'apple':
-            song_ids = []
-            for isrc in isrcs:
-                url = f'https://api.music.apple.com/v1/catalog/us/songs?filter[isrc]={isrc}'
-                response_json = StartSync.api_get(service, url, header)
-                if not response_json:
-                    print(f'Failed in making getting songs, url: {url}')
-                    return
-                if response_json['data'] and response_json['data'][0] and response_json['data'][0]['id']:
-                    song_ids.append({"id": f"{response_json['data'][0]['id']}", "type": "songs"})
-            
-            url = f'https://api.music.apple.com/v1/me/library/playlists/{playlist_id}/tracks'
-            payload = f'{{"data": {song_ids}}}'
-            payload = payload.replace("'", '"')
-            res = StartSync.api_post(service, url, header, payload)
-            return res
-        elif service == 'spotify':
-            uris = []
-            for isrc in isrcs:
-                url = f'https://api.spotify.com/v1/search?type=track&q=isrc:{isrc}'
-                response_json = StartSync.api_get(service, url, header)
+        song_codes = []
 
-                if not response_json:
-                    print(f'Failed in making getting uris, url: {url}')
-                    return
-                if response_json['tracks'] and response_json['tracks']['items'] and response_json['tracks']['items'][0] and response_json['tracks']['items'][0]['uri']:
-                    uris.append(response_json['tracks']['items'][0]['uri'])
+        for isrc in isrcs:
+            url = url_isrc + isrc
+            response_json = StartSync.api_get(service+'from isrc to id', url, header)
+            if service == 'spotify':
+                if response_json and response_json['tracks'] and response_json['tracks']['items'] and response_json['tracks']['items'][0] and response_json['tracks']['items'][0]['uri']:
+                    song_codes.append(response_json['tracks']['items'][0]['uri'])
+            elif service == 'apple':
+                if response_json and response_json['data'] and response_json['data'][0] and response_json['data'][0]['id']:
+                    song_codes.append({"id": f"{response_json['data'][0]['id']}", "type": "songs"})
+        if not song_codes:
+            return
+        
+        url = url_playlist + playlist_id + '/tracks'
 
-            url = f'https://api.spotify.com/v1/playlists/{playlist_id}/tracks'
-            payload = f'{{"uris": {uris}}}'
-            payload = payload.replace("'", '"')
-            res = StartSync.api_post(service, url, header, payload)
-            return res
-        return
+        if service == 'spotify':
+            payload = f'{{"uris": {song_codes}}}'
+        elif service == 'apple':
+            payload = f'{{"data": {song_codes}}}'
+        
+        if not payload:
+            return
+        payload = payload.replace("'", '"')
+        res = StartSync.api_post(service, url, header, payload)
+
+        return res
 
     @staticmethod
     def sync(playlistPairObject):
@@ -104,11 +102,7 @@ class StartSync():
         spotify_songs = StartSync.get_playlist_songs('spotify', StartSync.spotify_url, spotify_header, playlistPairObject.spotify_playlist_id)
         apple_songs = StartSync.get_playlist_songs('apple', StartSync.apple_url, apple_header, playlistPairObject.apple_playlist_id)
 
-        print(spotify_auth)
-        print(' ')
-        print(apple_auth)
-
-        spotify_successful = StartSync.add_playlist_songs_to('spotify', apple_songs-spotify_songs, spotify_header, playlistPairObject.spotify_playlist_id)
-        apple_successful = StartSync.add_playlist_songs_to('apple', spotify_songs-apple_songs, apple_header, playlistPairObject.apple_playlist_id)
+        spotify_successful = StartSync.add_playlist_songs_to('spotify', StartSync.spotify_from_isrc, apple_songs-spotify_songs, spotify_header, StartSync.spotify_url, playlistPairObject.spotify_playlist_id)
+        apple_successful = StartSync.add_playlist_songs_to('apple', StartSync.apple_from_isrc, spotify_songs-apple_songs, apple_header, StartSync.apple_url, playlistPairObject.apple_playlist_id)
 
         return [apple_successful, spotify_successful]
