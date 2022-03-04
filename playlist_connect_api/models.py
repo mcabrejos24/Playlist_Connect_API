@@ -9,6 +9,8 @@ class PlaylistPairs(models.Model):
     spotify_token_1 = models.CharField(max_length=128)
     spotify_token_2 = models.CharField(max_length=128)
     spotify_token_3 = models.CharField(max_length=128)
+    spotify_refresh_1 = models.CharField(max_length=128)
+    spotify_refresh_2 = models.CharField(max_length=128)
     apple_playlist_id = models.CharField(max_length=255)
     spotify_playlist_id = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
