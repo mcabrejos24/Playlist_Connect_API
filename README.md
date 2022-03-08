@@ -17,6 +17,8 @@ To spin up development server:
     - '0.0.0.0' makes the server accessible on all network adapters on our server
     - ':8000' is for port 8000
     - ctrl-c (stops the server)
+- python ./manage.py qcluster
+    - this is to run the scheduler
 
 - python manage.py makemigrations
 - python manage.py migrate
