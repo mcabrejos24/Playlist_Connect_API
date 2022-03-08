@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'playlist_connect_api',
     'corsheaders',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -53,13 +54,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-CORS_ALLOW_ALL_ORIGINS = False
-
-CORS_ALLOWED_ORIGINS = [
-'http://localhost:3000',
-'http://127.0.0.1:3000'
 ]
 
 ROOT_URLCONF = 'playlist_connect_project.urls'
@@ -131,3 +125,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+CORS_ALLOW_ALL_ORIGINS = False
+
+CORS_ALLOWED_ORIGINS = [
+'http://localhost:3000',
+'http://127.0.0.1:3000'
+]
+
+Q_CLUSTER = {
+    "name": "schedule",
+    "orm": "default",  # Use Django's ORM + database for broker
+}
