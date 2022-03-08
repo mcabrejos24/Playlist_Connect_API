@@ -18,7 +18,8 @@ class StartSync():
         isrc = set()
         for id in song_ids:
             response_json = StartSync.api_get('apple isrc', StartSync.apple_to_isrc_url+id, header)
-            isrc.add(response_json['data'][0]['attributes']['isrc'])
+            if response_json and response_json['data'] and response_json['data'][0] and response_json['data'][0]['attributes'] and response_json['data'][0]['attributes']['isrc']:
+                isrc.add(response_json['data'][0]['attributes']['isrc'])
         return isrc
 
     @staticmethod
