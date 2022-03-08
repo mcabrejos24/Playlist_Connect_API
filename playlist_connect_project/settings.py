@@ -37,13 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
     'playlist_connect_api',
     'corsheaders',
     'django_q',
 ]
+# 'django.contrib.staticfiles', removed from installed apps
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
