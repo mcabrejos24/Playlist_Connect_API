@@ -24,9 +24,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config("APPLE_DEVELOPER_TOKEN")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -123,15 +123,15 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
-# if I were to use static files, then I would uncomment the line below
-# STATIC_URL = '/static/' 
+
+STATIC_URL = '/static/' 
 
 CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
 'http://localhost:3000',
 'http://127.0.0.1:3000',
-'https://playlistpair.netlify.app/',
+'https://playlistpair.netlify.app',
 ]
 
 Q_CLUSTER = {
