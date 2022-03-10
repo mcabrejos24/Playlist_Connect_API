@@ -34,3 +34,11 @@ To spin up development server:
     - add 'rest_framework.authtoken'
     - add {new_app_name}
     - add trailing comma ',' at the end of each line
+
+
+# heroku
+
+- heroku ps:scale worker=1
+    - to run the scheduler because it doesn't run it automatically
+- heroku logs --tail
+    - to read the logs for checking errors and proccesses, etc.
