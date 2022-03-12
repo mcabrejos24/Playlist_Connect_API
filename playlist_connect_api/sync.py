@@ -54,11 +54,16 @@ class StartSync():
 
     @staticmethod
     def api_get(service, url, header):
-        response = requests.get(url, headers=header)
-        if not response:
-            print(f'Failed in making {service} GET call, url: {url}')
-            return
-        return json.loads(response.content)
+        response = requests.get(url, headers=header, timeout=10)
+        # check if response and return the response content
+        if response and response.status_code and response.content:
+            if response.status_code != '200':
+                print(f'Response from {service} GET, url: {url}, code: {response.status_code}')
+            # return json.loads(response.content)
+            return response
+        # runs if timeout happens, return False
+        print(f'Failed get a response, {service} GET, url: {url}')
+        return -1
 
     @staticmethod
     def add_playlist_songs_to(service, url_isrc, isrcs, header, url_playlist, playlist_id):
@@ -69,7 +74,7 @@ class StartSync():
         for isrc in isrcs:
             url = url_isrc + isrc
             response_json = StartSync.api_get(service+'from isrc to id', url, header)
-            if not response_json:
+            if response_json.status != 200:
                 return 0
             if service == 'spotify':
                 if response_json and response_json['tracks'] and response_json['tracks']['items'] and response_json['tracks']['items'][0] and response_json['tracks']['items'][0]['uri']:
@@ -96,11 +101,18 @@ class StartSync():
 
     @staticmethod # need to return print message and return based on error, expired or bad request
     def checkSpotifyAuth(header):
-        response_json = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
-        if not response_json:
-            return False;
-
-        return True
+        response  = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
+        if response  == -1:
+            print('checkSpotifyAuth: failed to get api response')
+            return -1
+        if response.status_code == 200:
+            return True
+        response_json = json.loads(response.content)
+        print(response_json)
+        if response.status_code == '400' and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
+            return False
+        print('Api error: ' + response.status_code + ' \nResponse content: \n' + response_json)
+        return -1
 
     @staticmethod
     def refreshSpotifyAuth(playlistPair):
@@ -157,8 +169,10 @@ class StartSync():
             'Authorization': f'Bearer {config("APPLE_DEVELOPER_TOKEN")}',
             'music-user-token': apple_auth
         }
-        spotifyAuthIsValid = StartSync.checkSpotifyAuth(spotify_header)
 
+        spotifyAuthIsValid = StartSync.checkSpotifyAuth(spotify_header)
+        if spotifyAuthIsValid == -1:
+            return [0, 0]
         if not spotifyAuthIsValid:
             refreshSuccessful = StartSync.refreshSpotifyAuth(playlistPairObject)
             if not refreshSuccessful:
