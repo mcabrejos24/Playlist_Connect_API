@@ -46,7 +46,7 @@ class StartSync():
 
     @staticmethod
     def api_post(service, url, header, payload):
-        response = requests.post(url, data=payload, headers=header)
+        response = requests.post(url, data=payload, headers=header, timeout=10)
         if not response:
             print(f'Failed in making {service} POST call, url: {url}')
             return
@@ -54,16 +54,19 @@ class StartSync():
 
     @staticmethod
     def api_get(service, url, header):
-        response = requests.get(url, headers=header, timeout=10)
-        # check if response and return the response content
-        if response and response.status_code and response.content:
-            if response.status_code != '200':
-                print(f'Response from {service} GET, url: {url}, code: {response.status_code}')
-            # return json.loads(response.content)
-            return response
-        # runs if timeout happens, return False
-        print(f'Failed get a response, {service} GET, url: {url}')
-        return -1
+        try: 
+            response = requests.get(url, headers=header, timeout=10)
+            # return response content
+            if response and response.status_code and response.content:
+                if response.status_code != '200':
+                    print(f'400 level response from {service} GET, url: {url}, code: {response.status_code}')
+                return response
+        except requests.Timeout:
+            print(f'Request timed out, failed get a response, {service} GET, url: {url}')
+            return -1
+        except requests.ConnectionError:
+            print(f'Connection error, failed get a response, {service} GET, url: {url}')
+            return -1
 
     @staticmethod
     def add_playlist_songs_to(service, url_isrc, isrcs, header, url_playlist, playlist_id):
