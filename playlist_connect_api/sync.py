@@ -93,8 +93,11 @@ class StartSync():
     @staticmethod
     def checkSpotifyAuth(header):
         response_json = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
+
+        if not response_json:
+            return False;
         
-        if not response_json or 'error' in response_json:
+        if 'error' in response_json:
             return False;
 
         return True
