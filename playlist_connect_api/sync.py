@@ -27,6 +27,18 @@ class StartSync():
         response_json = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
         songs_isrc = set()
 
+        print('   ')
+        print('get playlists response content')
+        print(response_json)
+        print('   ')
+
+        if not response_json:
+            print('here')
+            return
+
+        if response_json == None:
+            print('at least this one')
+
         # spotify returns songs with a attribute of isrc
         if service == 'spotify': 
             for song in response_json['items']:
@@ -45,6 +57,7 @@ class StartSync():
     @staticmethod
     def api_post(service, url, header, payload):
         response = requests.post(url, data=payload, headers=header)
+        print(response)
         if not response:
             print(f'Failed in making {service} POST call, url: {url}')
             return
@@ -52,7 +65,20 @@ class StartSync():
 
     @staticmethod
     def api_get(service, url, header):
-        response = requests.get(url, headers=header);
+        response = requests.get(url, headers=header)
+        # print('  ')
+        # print('check here')
+        # print(service)
+        # print(response)
+        # print('  ')
+
+        # print(type(response))
+
+        # print(response == Response(status=status.HTTP_404_BAD_REQUEST))
+
+        # if response == Response(status=status.HTTP_404_BAD_REQUEST):
+        #     print('finally -------------')
+        
         if not response:
             print(f'Failed in making {service} GET call, url: {url}')
             return
@@ -93,18 +119,25 @@ class StartSync():
     @staticmethod
     def checkSpotifyAuth(header):
         response_json = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
+        # print('   ')
+        # print('below in checkspotify function --------')
+        # print(response_json)
+        # print('   ')
+
+        # print(not response_json)
+        # print(response_json == None)
 
         if not response_json:
             return False;
         
-        if 'error' in response_json:
-            return False;
+        # if 'error' in response_json:
+        #     return False;
 
         return True
 
     @staticmethod
-    def refreshSpotifyAuth(playlistPair, spotify_header):
-        refresh_code = str(base64.b64decode(f'{playlistPair.spotify_refresh_1}{playlistPair.spotify_refresh_2}'))
+    def refreshSpotifyAuth(playlistPair):
+        refresh_code = base64.b64decode(f'{playlistPair.spotify_refresh_1}{playlistPair.spotify_refresh_2}').decode('ascii')
         header = { 
             'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -115,17 +148,28 @@ class StartSync():
         }
         response_json = StartSync.api_post('spotify refresh auth token', StartSync.spotify_refresh_token, header, payload)
         
-        if 'error' in response_json:
+        # print('   ')
+        # print(response_json)
+        # print('above ----- spider man')
+        # print('   ')
+
+        if not response_json:
             print('Error in refresh auth token')
             return False;
         
         access_token = response_json['access_token']
         refresh_token = response_json['refresh_token']
 
-        access_token_encoded = str(base64.b64encode(access_token), "utf-8")
+        # encodes the access token
+        access_token_bytes = access_token.encode('ascii')
+        access_token_bytes_encoded = base64.b64encode(access_token_bytes)
+        access_token_encoded = access_token_bytes_encoded.decode('ascii')
         access_token_encoded_array = [access_token_encoded[0:128], access_token_encoded[128:256], access_token_encoded[256:len(access_token_encoded)]]
 
-        refresh_token_encoded = str(base64.b64encode(refresh_token), "utf-8")
+        #encodes the refresh token
+        access_token_bytes = refresh_token.encode('ascii')
+        access_token_bytes_encoded = base64.b64encode(access_token_bytes)
+        refresh_token_encoded = access_token_bytes_encoded.decode('ascii')
         refresh_token_encoded_array = [refresh_token_encoded[0:128], refresh_token_encoded[128:len(refresh_token_encoded)]]
 
         playlistPair.spotify_token_1 = access_token_encoded_array[0]
@@ -153,8 +197,8 @@ class StartSync():
 
     @staticmethod
     def sync(playlistPairObject):
-        spotify_auth = str(base64.b64decode(f'{playlistPairObject.spotify_token_1}{playlistPairObject.spotify_token_2}{playlistPairObject.spotify_token_3}'), "utf-8")
-        apple_auth = str(base64.b64decode(f'{playlistPairObject.apple_token_1}{playlistPairObject.apple_token_2}{playlistPairObject.apple_token_3}'), "utf-8")
+        spotify_auth = base64.b64decode(f'{playlistPairObject.spotify_token_1}{playlistPairObject.spotify_token_2}{playlistPairObject.spotify_token_3}').decode('ascii')
+        apple_auth = base64.b64decode(f'{playlistPairObject.apple_token_1}{playlistPairObject.apple_token_2}{playlistPairObject.apple_token_3}').decode('ascii')
         spotify_header = {
             'Authorization': f'Bearer {spotify_auth}',
         }
@@ -162,17 +206,25 @@ class StartSync():
             'Authorization': f'Bearer {config("APPLE_DEVELOPER_TOKEN")}',
             'music-user-token': apple_auth
         }
+        print('   ')
+        print('spotify header')
+        print(spotify_header)
+        print('   ')
 
         spotifyAuthIsValid = StartSync.checkSpotifyAuth(spotify_header)
 
         if not spotifyAuthIsValid:
-            refreshSuccessful = StartSync.refreshSpotifyAuth(playlistPairObject, spotify_header)
+            refreshSuccessful = StartSync.refreshSpotifyAuth(playlistPairObject)
             if not refreshSuccessful:
-                return ['Failed to refresh spotify Auth', 'Discontinued due to failed spotify refresh']
+                return [0, 0]
             spotify_header = refreshSuccessful
 
         spotify_songs = StartSync.get_playlist_songs('spotify', StartSync.spotify_url, spotify_header, playlistPairObject.spotify_playlist_id)
         apple_songs = StartSync.get_playlist_songs('apple', StartSync.apple_url, apple_header, playlistPairObject.apple_playlist_id)
+
+        if not (spotify_songs and apple_songs):
+            print('Failed to get playlist songs from spotify or apple. Additional details will be in above logs.')
+            return [0, 0]
 
         spotify_successful = StartSync.add_playlist_songs_to('spotify', StartSync.spotify_from_isrc, apple_songs-spotify_songs, spotify_header, StartSync.spotify_url, playlistPairObject.spotify_playlist_id)
         apple_successful = StartSync.add_playlist_songs_to('apple', StartSync.apple_from_isrc, spotify_songs-apple_songs, apple_header, StartSync.apple_url, playlistPairObject.apple_playlist_id)
