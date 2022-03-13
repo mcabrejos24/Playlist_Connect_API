@@ -15,6 +15,7 @@ class StartSync():
     spotify_check_auth = 'https://api.spotify.com/v1/me'
 
     def get_apple_isrc(song_ids, header):
+        """Converts Apple Music catalog IDs to isrc codes"""
         # if passed in empty set song_ids, then return it
         if not song_ids:
             return song_ids
@@ -32,6 +33,7 @@ class StartSync():
 
     @staticmethod
     def get_playlist_songs(service, url, header, playlist_id):
+        """Gets all songs from a user's playlist"""
         response = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
         if response == -1 or response.status_code != '200':
             return -1
@@ -58,6 +60,7 @@ class StartSync():
 
     @staticmethod
     def api_post(service, url, header, payload):
+        """Method to send a POST request"""
         try:
             response = requests.post(url, data=payload, headers=header, timeout=10)
             if response and response.status_code and response.content:
@@ -76,6 +79,7 @@ class StartSync():
 
     @staticmethod
     def api_get(service, url, header):
+        """Method to send a GET request"""
         try: 
             response = requests.get(url, headers=header, timeout=10)
             # return response content
@@ -92,6 +96,7 @@ class StartSync():
 
     @staticmethod
     def add_playlist_songs_to(service, url_isrc, isrcs, header, url_playlist, playlist_id):
+        """Adds songs to a user's playlist"""
         if not isrcs:
             return
         song_codes = []
@@ -140,6 +145,7 @@ class StartSync():
 
     @staticmethod # need to return print message and return based on error, expired or bad request
     def checkSpotifyAuth(header):
+        """Checks to see if the spotify authentication token saved is still valid"""
         response = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
         if response == -1:
             print('checkSpotifyAuth: failed to get api response')
@@ -155,6 +161,7 @@ class StartSync():
 
     @staticmethod
     def refreshSpotifyAuth(playlistPair):
+        """Refreshes the spotify authentication token"""
         refresh_code = base64.b64decode(f'{playlistPair.spotify_refresh_1}{playlistPair.spotify_refresh_2}').decode('ascii')
         header = {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -204,6 +211,7 @@ class StartSync():
 
     @staticmethod
     def sync(playlistPairObject):
+        """Syncs one Spotify and one Apple Music playlist together"""
         spotify_auth = base64.b64decode(f'{playlistPairObject.spotify_token_1}{playlistPairObject.spotify_token_2}{playlistPairObject.spotify_token_3}').decode('ascii')
         apple_auth = base64.b64decode(f'{playlistPairObject.apple_token_1}{playlistPairObject.apple_token_2}{playlistPairObject.apple_token_3}').decode('ascii')
         spotify_header = {
