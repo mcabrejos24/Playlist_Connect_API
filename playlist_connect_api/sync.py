@@ -36,6 +36,8 @@ class StartSync():
         """Gets all songs from a user's playlist"""
         response = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
         if response == -1 or response.status_code != 200:
+            if response.status_code == 404:
+                print(json.loads(response.content))
             return -1
 
         songs_isrc = set()
@@ -153,7 +155,7 @@ class StartSync():
         if response.status_code == 200:
             return True
         response_json = json.loads(response.content)
-        if response.status_code == 401 and response_json['message'] and response_json['message'] == 'The access token expired':
+        if response.status_code == 401 and response_json['error'] and response_json['error']['message'] and response_json['error']['message'] == 'The access token expired':
             return False
         if response.status_code == 400 and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
             print('Refresh token response error')
