@@ -153,9 +153,10 @@ class StartSync():
         if response.status_code == 200:
             return True
         response_json = json.loads(response.content)
-        print(response_json) # delete after development today
-        if response.status_code == 400 and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
+        if response.status_code == 401 and response_json['message'] and response_json['message'] == 'The access token expired':
             return False
+        if response.status_code == 400 and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
+            print('Refresh token response error')
         print(f'\nApi error: {response.status_code} \nResponse content: \n {response_json}\n')
         return -1
 
