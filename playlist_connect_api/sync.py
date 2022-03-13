@@ -156,7 +156,7 @@ class StartSync():
         print(response_json) # delete after development today
         if response.status_code == 400 and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
             return False
-        print('Api error: {response.status_code} \nResponse content: \n + {response_json}')
+        print(f'Api error: {response.status_code} \nResponse content: \n + {response_json}')
         return -1
 
     @staticmethod
