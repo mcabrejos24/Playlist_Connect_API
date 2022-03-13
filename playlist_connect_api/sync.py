@@ -15,20 +15,29 @@ class StartSync():
     spotify_check_auth = 'https://api.spotify.com/v1/me'
 
     def get_apple_isrc(song_ids, header):
+        # if passed in empty set song_ids, then return it
+        if not song_ids:
+            return song_ids
         isrc = set()
         for id in song_ids:
-            response_json = StartSync.api_get('apple isrc', StartSync.apple_to_isrc_url+id, header)
+            response = StartSync.api_get('apple isrc', StartSync.apple_to_isrc_url+id, header)
+            # if failed to get isrc, then move on to the next song, will return empty isrc if no isrc's were retreieved
+            if response == -1 or response.status_code != '200':
+                print('Failed to get apple isrc code')
+                continue
+            response_json = json.loads(response.content)
             if response_json and response_json['data'] and response_json['data'][0] and response_json['data'][0]['attributes'] and response_json['data'][0]['attributes']['isrc']:
                 isrc.add(response_json['data'][0]['attributes']['isrc'])
         return isrc
 
     @staticmethod
     def get_playlist_songs(service, url, header, playlist_id):
-        response_json = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
-        if not response_json:
+        response = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
+        if response == -1 or response.status_code != '200':
             return 0
 
         songs_isrc = set()
+        response_json = json.loads(response.content)
         # spotify returns songs with a attribute of isrc
         if service == 'spotify': 
             for song in response_json['items']:
@@ -42,6 +51,9 @@ class StartSync():
                     apple_song_ids.add(song['attributes']['playParams']['catalogId'])
                 songs_isrc = StartSync.get_apple_isrc(apple_song_ids, header)
 
+        # check if any songs were added
+        if not songs_isrc:
+            print('No songs retreieved from ' + service)
         return songs_isrc
 
     @staticmethod
@@ -115,7 +127,7 @@ class StartSync():
     @staticmethod # need to return print message and return based on error, expired or bad request
     def checkSpotifyAuth(header):
         response = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
-        if response  == -1:
+        if response == -1:
             print('checkSpotifyAuth: failed to get api response')
             return -1
         if response.status_code == 200:
@@ -200,7 +212,7 @@ class StartSync():
         spotify_songs = StartSync.get_playlist_songs('spotify', StartSync.spotify_url, spotify_header, playlistPairObject.spotify_playlist_id)
         apple_songs = StartSync.get_playlist_songs('apple', StartSync.apple_url, apple_header, playlistPairObject.apple_playlist_id)
 
-        if spotify_songs == 0 or apple_songs == 0:
+        if not (spotify_songs and apple_songs):
             print('Failed to get playlist songs from spotify or apple. Additional details will be in above logs.')
             return [spotify_songs, apple_songs]
 
