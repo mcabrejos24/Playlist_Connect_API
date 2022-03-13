@@ -139,7 +139,7 @@ class StartSync():
         payload = payload.replace("'", '"')
 
         res = StartSync.api_post(service, url, header, payload)
-        if res == -1 or res.status_code != 200:
+        if res == -1 or res.status_code >= 400:
             print('add_playlist_songs_to: FAILED to post api request')
             return -1
         
