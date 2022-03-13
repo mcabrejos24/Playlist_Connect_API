@@ -23,7 +23,7 @@ class StartSync():
         for id in song_ids:
             response = StartSync.api_get('apple isrc', StartSync.apple_to_isrc_url+id, header)
             # if failed to get isrc, then move on to the next song, will return empty isrc if no isrc's were retreieved
-            if response == -1 or response.status_code != '200':
+            if response == -1 or response.status_code != 200:
                 print('Failed to get apple isrc code')
                 continue
             response_json = json.loads(response.content)
@@ -35,7 +35,7 @@ class StartSync():
     def get_playlist_songs(service, url, header, playlist_id):
         """Gets all songs from a user's playlist"""
         response = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
-        if response == -1 or response.status_code != '200':
+        if response == -1 or response.status_code != 200:
             return -1
 
         songs_isrc = set()
@@ -55,7 +55,7 @@ class StartSync():
 
         # check if any songs were added
         if not songs_isrc:
-            print('No songs retreieved from ' + service)
+            print(f'No songs retreieved from {service}')
         return songs_isrc
 
     @staticmethod
@@ -63,8 +63,8 @@ class StartSync():
         """Method to send a POST request"""
         try:
             response = requests.post(url, data=payload, headers=header, timeout=10)
-            if response and response.status_code and response.content:
-                if response.status_code != '200':
+            if response.status_code and response.content:
+                if response.status_code != 200:
                     print(f'400 level response from {service} POST, url: {url}, code: {response.status_code}')
                 return response
         except requests.Timeout:
@@ -83,8 +83,8 @@ class StartSync():
         try: 
             response = requests.get(url, headers=header, timeout=10)
             # return response content
-            if response and response.status_code and response.content:
-                if response.status_code != '200':
+            if response.status_code and response.content:
+                if response.status_code != 200:
                     print(f'400 level response from {service} GET, url: {url}, code: {response.status_code}')
                 return response
         except requests.Timeout:
@@ -110,9 +110,9 @@ class StartSync():
                 return -1
 
             response_json = json.loads(response.content)
-            if response.status_code != '200':
+            if response.status_code != 200:
                 # Could mean the service does not have isrc in their library, check log
-                print('Failed to get isrc in ' + service)
+                print(f'Failed to get isrc in {service}')
                 print(response_json)
             else:
                 if service == 'spotify':
@@ -137,7 +137,7 @@ class StartSync():
         payload = payload.replace("'", '"')
 
         res = StartSync.api_post(service, url, header, payload)
-        if res == -1 or res.status_code != '200':
+        if res == -1 or res.status_code != 200:
             print('add_playlist_songs_to: FAILED to post api request')
             return -1
         
@@ -150,13 +150,13 @@ class StartSync():
         if response == -1:
             print('checkSpotifyAuth: failed to get api response')
             return -1
-        if response.status_code == '200':
+        if response.status_code == 200:
             return True
         response_json = json.loads(response.content)
         print(response_json) # delete after development today
-        if response.status_code == '400' and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
+        if response.status_code == 400 and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
             return False
-        print('Api error: ' + response.status_code + ' \nResponse content: \n' + response_json)
+        print('Api error: {response.status_code} \nResponse content: \n + {response_json}')
         return -1
 
     @staticmethod
@@ -172,7 +172,7 @@ class StartSync():
             'client_id': config("SPOTIFY_CLIENT_ID")
         }
         response = StartSync.api_post('spotify refresh auth token', StartSync.spotify_refresh_token, header, payload)
-        if response  == -1 or response.status_code != '200':
+        if response  == -1 or response.status_code != 200:
             print('Failed to refresh the Spotify refresh auth token')
             return False
 
