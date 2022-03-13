@@ -66,7 +66,7 @@ class StartSync():
         try:
             response = requests.post(url, data=payload, headers=header, timeout=10)
             if response.status_code and response.content:
-                if response.status_code != 200:
+                if response.status_code >= 400:
                     print(f'400 level response from {service} POST, url: {url}, code: {response.status_code}')
                 return response
         except requests.Timeout:
