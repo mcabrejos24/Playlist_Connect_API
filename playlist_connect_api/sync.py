@@ -27,7 +27,7 @@ class StartSync():
                 print('Failed to get apple isrc code')
                 continue
             response_json = json.loads(response.content)
-            if response_json and response_json['data'] and response_json['data'][0] and response_json['data'][0]['attributes'] and response_json['data'][0]['attributes']['isrc']:
+            if response_json and ('data' in response_json) and (len(response_json['data']) > 0) and ('attributes' in response_json['data'][0]) and ('isrc' in response_json['data'][0]['attributes']):
                 isrc.add(response_json['data'][0]['attributes']['isrc'])
         return isrc
 
@@ -43,12 +43,12 @@ class StartSync():
         songs_isrc = set()
         response_json = json.loads(response.content)
         # spotify returns songs with a attribute of isrc
-        if service == 'spotify': 
+        if service == 'spotify' and ('items' in response_json): 
             for song in response_json['items']:
                 if song['track'] and song['track']['external_ids'] and song['track']['external_ids']['isrc']:
                     songs_isrc.add(song['track']['external_ids']['isrc'])
         # apple music returns songs with an id that then need to be used to find the isrc in another call, hence function get_apple_isrc() is used
-        elif service == 'apple':
+        elif service == 'apple' and ('data' in response_json):
             apple_song_ids = set()
             for song in response_json['data']:
                 if song['attributes'] and song['attributes']['playParams'] and song['attributes']['playParams']['catalogId']:
@@ -118,10 +118,10 @@ class StartSync():
                 print(response_json)
             else:
                 if service == 'spotify':
-                    if response_json and response_json['tracks'] and response_json['tracks']['items'] and response_json['tracks']['items'][0] and response_json['tracks']['items'][0]['uri']:
+                    if response_json and ('tracks' in response_json) and ('items' in response_json['tracks']) and (len(response_json['tracks']['items']) > 0) and ('uri' in response_json['tracks']['items'][0]):
                         song_codes.append(response_json['tracks']['items'][0]['uri'])
                 elif service == 'apple':
-                    if response_json and response_json['data'] and response_json['data'][0] and response_json['data'][0]['id']:
+                    if response_json and ('data' in response_json) and (len(response_json['data']) > 0) and ('id' in response_json['data'][0]):
                         song_codes.append({"id": f"{response_json['data'][0]['id']}", "type": "songs"})
         # if empty list then service does not have song in their library
         if not song_codes:
@@ -155,9 +155,9 @@ class StartSync():
         if response.status_code == 200:
             return True
         response_json = json.loads(response.content)
-        if response.status_code == 401 and response_json['error'] and response_json['error']['message'] and response_json['error']['message'] == 'The access token expired':
+        if response.status_code == 401 and ('error' in response_json) and ('message' in response_json['error']) and response_json['error']['message'] == 'The access token expired':
             return False
-        if response.status_code == 400 and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
+        if response.status_code == 400 and ('error_description' in response_json) and response_json['error_description'] == 'Refresh token revoked':
             print('Refresh token response error')
         print(f'\nApi error: {response.status_code} \nResponse content: \n {response_json}\n')
         return -1
@@ -181,6 +181,11 @@ class StartSync():
 
         response_json = json.loads(response.content)
 
+        if (not response_json) or (not ('access_token' in response_json)):
+            print('\nNo \'access_token\' param in response\n')
+            print(response_json)
+            return False
+
         access_token = response_json['access_token']
         # encodes the access token
         access_token_bytes = access_token.encode('ascii')
@@ -193,7 +198,7 @@ class StartSync():
         playlistPair.spotify_token_3 = access_token_encoded_array[2]
 
         # if the response generated a new refresh token
-        if response_json['refresh_token'] and response_json['refresh_token'] != '':
+        if ('refresh_token' in response_json) and response_json['refresh_token'] != '':
             refresh_token = response_json['refresh_token']
             #encodes the refresh token
             refresh_token_bytes = refresh_token.encode('ascii')
