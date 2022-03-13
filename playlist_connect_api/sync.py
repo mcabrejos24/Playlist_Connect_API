@@ -34,7 +34,7 @@ class StartSync():
     def get_playlist_songs(service, url, header, playlist_id):
         response = StartSync.api_get(service, url+playlist_id+'/tracks', header=header)
         if response == -1 or response.status_code != '200':
-            return 0
+            return -1
 
         songs_isrc = set()
         response_json = json.loads(response.content)
@@ -212,9 +212,16 @@ class StartSync():
         spotify_songs = StartSync.get_playlist_songs('spotify', StartSync.spotify_url, spotify_header, playlistPairObject.spotify_playlist_id)
         apple_songs = StartSync.get_playlist_songs('apple', StartSync.apple_url, apple_header, playlistPairObject.apple_playlist_id)
 
-        if not (spotify_songs and apple_songs):
+        # failed get songs to apis
+        if spotify_songs == -1 or apple_songs == -1:
             print('Failed to get playlist songs from spotify or apple. Additional details will be in above logs.')
-            return [spotify_songs, apple_songs]
+            return [0, 0]
+
+        # no songs to add from spotify
+        if not spotify_songs:
+            print('No songs to add from spotify')
+        if not apple_songs:
+            print('No songs to add from apple')
 
         spotify_successful = StartSync.add_playlist_songs_to('spotify', StartSync.spotify_from_isrc, apple_songs-spotify_songs, spotify_header, StartSync.spotify_url, playlistPairObject.spotify_playlist_id)
         apple_successful = StartSync.add_playlist_songs_to('apple', StartSync.apple_from_isrc, spotify_songs-apple_songs, apple_header, StartSync.apple_url, playlistPairObject.apple_playlist_id)
