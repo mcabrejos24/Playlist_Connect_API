@@ -46,10 +46,20 @@ class StartSync():
 
     @staticmethod
     def api_post(service, url, header, payload):
-        response = requests.post(url, data=payload, headers=header, timeout=10)
-        if not response:
-            print(f'Failed in making {service} POST call, url: {url}')
-            return
+        try:
+            response = requests.post(url, data=payload, headers=header, timeout=10)
+            if response and response.status_code and response.content:
+                if response.status_code != '200':
+                    print(f'400 level response from {service} POST, url: {url}, code: {response.status_code}')
+                return response
+        except requests.Timeout:
+            print(f'Request timed out, failed to get a response, {service} POST, url: {url}')
+            return -1
+        except requests.ConnectionError:
+            print(f'Connection error, failed to get a response, {service} POST, url: {url}')
+            return -1
+            
+
         return response
 
     @staticmethod
@@ -62,10 +72,10 @@ class StartSync():
                     print(f'400 level response from {service} GET, url: {url}, code: {response.status_code}')
                 return response
         except requests.Timeout:
-            print(f'Request timed out, failed get a response, {service} GET, url: {url}')
+            print(f'Request timed out, failed to get a response, {service} GET, url: {url}')
             return -1
         except requests.ConnectionError:
-            print(f'Connection error, failed get a response, {service} GET, url: {url}')
+            print(f'Connection error, failed to get a response, {service} GET, url: {url}')
             return -1
 
     @staticmethod
@@ -104,14 +114,14 @@ class StartSync():
 
     @staticmethod # need to return print message and return based on error, expired or bad request
     def checkSpotifyAuth(header):
-        response  = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
+        response = StartSync.api_get('spotify check auth', StartSync.spotify_check_auth, header)
         if response  == -1:
             print('checkSpotifyAuth: failed to get api response')
             return -1
         if response.status_code == 200:
             return True
         response_json = json.loads(response.content)
-        print(response_json)
+        print(response_json) # delete after development today
         if response.status_code == '400' and response_json['error_description'] and response_json['error_description'] == 'Refresh token revoked':
             return False
         print('Api error: ' + response.status_code + ' \nResponse content: \n' + response_json)
@@ -128,32 +138,37 @@ class StartSync():
             'refresh_token': f'{refresh_code}',
             'client_id': config("SPOTIFY_CLIENT_ID")
         }
-        response_json = StartSync.api_post('spotify refresh auth token', StartSync.spotify_refresh_token, header, payload)
+        response = StartSync.api_post('spotify refresh auth token', StartSync.spotify_refresh_token, header, payload)
+        if response  == -1 or response.status_code != 200:
+            print('Failed to refresh the Spotify refresh auth token')
+            return False
 
-        if not response_json:
-            print('Error in getting the Spotify refresh auth token')
-            return False;
-        
+        response_json = json.loads(response.content)
+
         access_token = response_json['access_token']
-        refresh_token = response_json['refresh_token']
-
         # encodes the access token
         access_token_bytes = access_token.encode('ascii')
         access_token_bytes_encoded = base64.b64encode(access_token_bytes)
         access_token_encoded = access_token_bytes_encoded.decode('ascii')
         access_token_encoded_array = [access_token_encoded[0:128], access_token_encoded[128:256], access_token_encoded[256:len(access_token_encoded)]]
-
-        #encodes the refresh token
-        access_token_bytes = refresh_token.encode('ascii')
-        access_token_bytes_encoded = base64.b64encode(access_token_bytes)
-        refresh_token_encoded = access_token_bytes_encoded.decode('ascii')
-        refresh_token_encoded_array = [refresh_token_encoded[0:128], refresh_token_encoded[128:len(refresh_token_encoded)]]
-
+        # saves new access token to db
         playlistPair.spotify_token_1 = access_token_encoded_array[0]
         playlistPair.spotify_token_2 = access_token_encoded_array[1]
         playlistPair.spotify_token_3 = access_token_encoded_array[2]
-        playlistPair.spotify_refresh_1 = refresh_token_encoded_array[0]
-        playlistPair.spotify_refresh_2 = refresh_token_encoded_array[1]
+
+        # if the response generated a new refresh token
+        if response_json['refresh_token'] and response_json['refresh_token'] != '':
+            refresh_token = response_json['refresh_token']
+            #encodes the refresh token
+            refresh_token_bytes = refresh_token.encode('ascii')
+            refresh_token_bytes_encoded = base64.b64encode(refresh_token_bytes)
+            refresh_token_encoded = refresh_token_bytes_encoded.decode('ascii')
+            refresh_token_encoded_array = [refresh_token_encoded[0:128], refresh_token_encoded[128:len(refresh_token_encoded)]]
+            # saves new refresh token to db
+            playlistPair.spotify_refresh_1 = refresh_token_encoded_array[0]
+            playlistPair.spotify_refresh_2 = refresh_token_encoded_array[1]
+
+        # save new db changes
         playlistPair.save()
         
         return {
