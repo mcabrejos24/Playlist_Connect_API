@@ -98,16 +98,27 @@ class StartSync():
 
         for isrc in isrcs:
             url = url_isrc + isrc
-            response_json = StartSync.api_get(service+'from isrc to id', url, header)
-            if response_json.status != 200:
-                return 0
-            if service == 'spotify':
-                if response_json and response_json['tracks'] and response_json['tracks']['items'] and response_json['tracks']['items'][0] and response_json['tracks']['items'][0]['uri']:
-                    song_codes.append(response_json['tracks']['items'][0]['uri'])
-            elif service == 'apple':
-                if response_json and response_json['data'] and response_json['data'][0] and response_json['data'][0]['id']:
-                    song_codes.append({"id": f"{response_json['data'][0]['id']}", "type": "songs"})
+            # convert isrc to service ids
+            response = StartSync.api_get(service+'from isrc to id', url, header)
+            if response == -1:
+                print('add_playlist_songs_to: FAILED to get api response')
+                return -1
+
+            response_json = json.loads(response.content)
+            if response.status_code != '200':
+                # Could mean the service does not have isrc in their library, check log
+                print('Failed to get isrc in ' + service)
+                print(response_json)
+            else:
+                if service == 'spotify':
+                    if response_json and response_json['tracks'] and response_json['tracks']['items'] and response_json['tracks']['items'][0] and response_json['tracks']['items'][0]['uri']:
+                        song_codes.append(response_json['tracks']['items'][0]['uri'])
+                elif service == 'apple':
+                    if response_json and response_json['data'] and response_json['data'][0] and response_json['data'][0]['id']:
+                        song_codes.append({"id": f"{response_json['data'][0]['id']}", "type": "songs"})
+        # if empty list then service does not have song in their library
         if not song_codes:
+            # return nothing instead of -1 because not failure, no songs added because of isrc
             return
         
         url = url_playlist + playlist_id + '/tracks'
@@ -116,12 +127,15 @@ class StartSync():
             payload = f'{{"uris": {song_codes}}}'
         elif service == 'apple':
             payload = f'{{"data": {song_codes}}}'
-        
-        if not payload:
-            return
+            
+        # json clean up
         payload = payload.replace("'", '"')
-        res = StartSync.api_post(service, url, header, payload)
 
+        res = StartSync.api_post(service, url, header, payload)
+        if res == -1 or res.status_code != '200':
+            print('add_playlist_songs_to: FAILED to post api request')
+            return -1
+        
         return res
 
     @staticmethod # need to return print message and return based on error, expired or bad request
@@ -130,7 +144,7 @@ class StartSync():
         if response == -1:
             print('checkSpotifyAuth: failed to get api response')
             return -1
-        if response.status_code == 200:
+        if response.status_code == '200':
             return True
         response_json = json.loads(response.content)
         print(response_json) # delete after development today
@@ -151,7 +165,7 @@ class StartSync():
             'client_id': config("SPOTIFY_CLIENT_ID")
         }
         response = StartSync.api_post('spotify refresh auth token', StartSync.spotify_refresh_token, header, payload)
-        if response  == -1 or response.status_code != 200:
+        if response  == -1 or response.status_code != '200':
             print('Failed to refresh the Spotify refresh auth token')
             return False
 
@@ -225,5 +239,9 @@ class StartSync():
 
         spotify_successful = StartSync.add_playlist_songs_to('spotify', StartSync.spotify_from_isrc, apple_songs-spotify_songs, spotify_header, StartSync.spotify_url, playlistPairObject.spotify_playlist_id)
         apple_successful = StartSync.add_playlist_songs_to('apple', StartSync.apple_from_isrc, spotify_songs-apple_songs, apple_header, StartSync.apple_url, playlistPairObject.apple_playlist_id)
+
+        if spotify_successful == -1 or apple_successful == -1:
+            print('Failed to add playlist songs to spotify or apple. Additional details will be in above logs.')
+            return [0, 0]
 
         return [apple_successful, spotify_successful]
