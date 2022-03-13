@@ -23,4 +23,4 @@ typing-extensions==4.1.1
 urllib3==1.26.8
 wcwidth==0.2.5
 whitenoise==5.3.0
-newrelic
+newrelic==1.10.0.28
