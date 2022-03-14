@@ -26,10 +26,6 @@ on:
         required: true 
 jobs:
   build:
-    env:
-      DJANGO_SECRET_KEY: ${{ github.secrets.DJANGO_SECRET_KEY }}
-      APPLE_DEVELOPER_TOKEN: ${{ github.secrets.APPLE_DEVELOPER_TOKEN }}
-      SPOTIFY_CLIENT_ID: ${{ github.secrets.SPOTIFY_CLIENT_ID }}
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
@@ -50,5 +46,9 @@ jobs:
       run: |
         flake8 .
     - name: Run Tests
+      env:
+        DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+        APPLE_DEVELOPER_TOKEN: ${{ secrets.APPLE_DEVELOPER_TOKEN }}
+        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
       run: |
         python manage.py test
