@@ -1,4 +1,4 @@
-from operator import truediv
+
 import requests
 import base64
 import json
@@ -12,7 +12,7 @@ class StartSync:
     apple_url = "https://api.music.apple.com/v1/me/library/playlists/"
     apple_to_isrc_url = "https://api.music.apple.com/v1/catalog/us/songs/"
     spotify_from_isrc = "https://api.spotify.com/v1/search?type=track&q=isrc:"
-    apple_from_isrc = "https://api.music.apple.com/v1/catalog/us/songs?filter[isrc]="
+    apple_from_isrc = "https://api.music.apple.com/v1/catalog/us/songs?filter[isrc]=" #noqa
     spotify_refresh_token = "https://accounts.spotify.com/api/token"
     spotify_check_auth = "https://api.spotify.com/v1/me"
 
@@ -26,7 +26,8 @@ class StartSync:
             response = StartSync.api_get(
                 "apple isrc", StartSync.apple_to_isrc_url + id, header
             )
-            # if failed to get isrc, then move on to the next song, will return empty isrc if no isrc's were retreieved
+            # if failed to get isrc, then move on to the next song, 
+            # will return empty isrc if no isrc's were retreieved
             if response == -1 or response.status_code != 200:
                 print("Failed to get apple isrc code")
                 continue
@@ -63,7 +64,9 @@ class StartSync:
                     and song["track"]["external_ids"]["isrc"]
                 ):
                     songs_isrc.add(song["track"]["external_ids"]["isrc"])
-        # apple music returns songs with an id that then need to be used to find the isrc in another call, hence function get_apple_isrc() is used
+        # apple music returns songs with an id that then need 
+        # to be used to find the isrc in another call, 
+        # hence function get_apple_isrc() is used
         elif service == "apple" and ("data" in response_json):
             apple_song_ids = set()
             for song in response_json["data"]:
@@ -72,7 +75,9 @@ class StartSync:
                     and song["attributes"]["playParams"]
                     and song["attributes"]["playParams"]["catalogId"]
                 ):
-                    apple_song_ids.add(song["attributes"]["playParams"]["catalogId"])
+                    apple_song_ids.add(
+                        song["attributes"]["playParams"]["catalogId"]
+                    )
                 songs_isrc = StartSync.get_apple_isrc(apple_song_ids, header)
 
         # check if any songs were added
@@ -84,21 +89,29 @@ class StartSync:
     def api_post(service, url, header, payload):
         """Method to send a POST request"""
         try:
-            response = requests.post(url, data=payload, headers=header, timeout=10)
+            response = requests.post(
+                url, 
+                data=payload, 
+                headers=header, 
+                timeout=10
+            )
             if response.status_code and response.content:
                 if response.status_code >= 400:
                     print(
-                        f"400 level response from {service} POST, url: {url}, code: {response.status_code}"
+                        f"400 level response from {service} POST, \
+                            url: {url}, code: {response.status_code}"
                     )
                 return response
         except requests.Timeout:
             print(
-                f"Request timed out, failed to get a response, {service} POST, url: {url}"
+                f"Request timed out, failed to get a \
+                    response, {service} POST, url: {url}"
             )
             return -1
         except requests.ConnectionError:
             print(
-                f"Connection error, failed to get a response, {service} POST, url: {url}"
+                f"Connection error, failed to get a \
+                    response, {service} POST, url: {url}"
             )
             return -1
 
@@ -113,17 +126,20 @@ class StartSync:
             if response.status_code and response.content:
                 if response.status_code != 200:
                     print(
-                        f"400 level response from {service} GET, url: {url}, code: {response.status_code}"
+                        f"400 level response from {service} GET, \
+                            url: {url}, code: {response.status_code}"
                     )
                 return response
         except requests.Timeout:
             print(
-                f"Request timed out, failed to get a response, {service} GET, url: {url}"
+                f"Request timed out, failed to get a \
+                    response, {service} GET, url: {url}"
             )
             return -1
         except requests.ConnectionError:
             print(
-                f"Connection error, failed to get a response, {service} GET, url: {url}"
+                f"Connection error, failed to get a \
+                    response, {service} GET, url: {url}"
             )
             return -1
 
@@ -139,14 +155,16 @@ class StartSync:
         for isrc in isrcs:
             url = url_isrc + isrc
             # convert isrc to service ids
-            response = StartSync.api_get(service + "from isrc to id", url, header)
+            response = StartSync.api_get(service + \
+                "from isrc to id", url, header)
             if response == -1:
                 print("add_playlist_songs_to: FAILED to get api response")
                 return -1
 
             response_json = json.loads(response.content)
             if response.status_code != 200:
-                # Could mean the service does not have isrc in their library, check log
+                # Could mean the service does not have 
+                # isrc in their library, check log
                 print(f"Failed to get isrc in {service}")
                 print(response_json)
             else:
@@ -158,7 +176,9 @@ class StartSync:
                         and (len(response_json["tracks"]["items"]) > 0)
                         and ("uri" in response_json["tracks"]["items"][0])
                     ):
-                        song_codes.append(response_json["tracks"]["items"][0]["uri"])
+                        song_codes.append(
+                            response_json["tracks"]["items"][0]["uri"]
+                        )
                 elif service == "apple":
                     if (
                         response_json
@@ -167,11 +187,15 @@ class StartSync:
                         and ("id" in response_json["data"][0])
                     ):
                         song_codes.append(
-                            {"id": f"{response_json['data'][0]['id']}", "type": "songs"}
+                            {
+                                "id": f"{response_json['data'][0]['id']}", 
+                                "type": "songs"
+                            }
                         )
         # if empty list then service does not have song in their library
         if not song_codes:
-            # return nothing instead of -1 because not failure, no songs added because of isrc
+            # return nothing instead of -1 because not failure, 
+            # no songs added because of isrc
             return
 
         url = url_playlist + playlist_id + "/tracks"
