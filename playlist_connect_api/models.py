@@ -20,7 +20,7 @@ class PlaylistPairs(models.Model):
         """Retieve the Apple playlist name"""
         return self.apple_playlist_id
 
-    def get_apple_playlist_id(self):
+    def get_spotify_playlist_id(self):
         """Retieve the Spotify playlist name"""
         return self.spotify_playlist_id
 
