@@ -12,7 +12,8 @@ class StartSync:
     apple_url = "https://api.music.apple.com/v1/me/library/playlists/"
     apple_to_isrc_url = "https://api.music.apple.com/v1/catalog/us/songs/"
     spotify_from_isrc = "https://api.spotify.com/v1/search?type=track&q=isrc:"
-    apple_from_isrc = "https://api.music.apple.com/v1/catalog/us/songs?filter[isrc]=" #noqa
+    apple_from_isrc = "https://api.music.apple.com\
+        /v1/catalog/us/songs?filter[isrc]="
     spotify_refresh_token = "https://accounts.spotify.com/api/token"
     spotify_check_auth = "https://api.spotify.com/v1/me"
 
@@ -26,7 +27,7 @@ class StartSync:
             response = StartSync.api_get(
                 "apple isrc", StartSync.apple_to_isrc_url + id, header
             )
-            # if failed to get isrc, then move on to the next song, 
+            # if failed to get isrc, then move on to the next song,
             # will return empty isrc if no isrc's were retreieved
             if response == -1 or response.status_code != 200:
                 print("Failed to get apple isrc code")
@@ -64,8 +65,8 @@ class StartSync:
                     and song["track"]["external_ids"]["isrc"]
                 ):
                     songs_isrc.add(song["track"]["external_ids"]["isrc"])
-        # apple music returns songs with an id that then need 
-        # to be used to find the isrc in another call, 
+        # apple music returns songs with an id that then need
+        # to be used to find the isrc in another call,
         # hence function get_apple_isrc() is used
         elif service == "apple" and ("data" in response_json):
             apple_song_ids = set()
@@ -90,9 +91,9 @@ class StartSync:
         """Method to send a POST request"""
         try:
             response = requests.post(
-                url, 
-                data=payload, 
-                headers=header, 
+                url,
+                data=payload,
+                headers=header,
                 timeout=10
             )
             if response.status_code and response.content:
@@ -155,15 +156,17 @@ class StartSync:
         for isrc in isrcs:
             url = url_isrc + isrc
             # convert isrc to service ids
-            response = StartSync.api_get(service + \
-                "from isrc to id", url, header)
+            response = StartSync.api_get(
+                service + "from isrc to id",
+                url, header
+            )
             if response == -1:
                 print("add_playlist_songs_to: FAILED to get api response")
                 return -1
 
             response_json = json.loads(response.content)
             if response.status_code != 200:
-                # Could mean the service does not have 
+                # Could mean the service does not have
                 # isrc in their library, check log
                 print(f"Failed to get isrc in {service}")
                 print(response_json)
@@ -188,13 +191,13 @@ class StartSync:
                     ):
                         song_codes.append(
                             {
-                                "id": f"{response_json['data'][0]['id']}", 
+                                "id": f"{response_json['data'][0]['id']}",
                                 "type": "songs"
                             }
                         )
         # if empty list then service does not have song in their library
         if not song_codes:
-            # return nothing instead of -1 because not failure, 
+            # return nothing instead of -1 because not failure,
             # no songs added because of isrc
             return
 
@@ -215,9 +218,9 @@ class StartSync:
 
         return res
 
-    @staticmethod  # need to return print message and return based on error, expired or bad request
+    @staticmethod
     def checkSpotifyAuth(header):
-        """Checks to see if the spotify authentication token saved is still valid"""
+        """Checks validity of saved spotify authentication token"""
         response = StartSync.api_get(
             "spotify check auth", StartSync.spotify_check_auth, header
         )
@@ -241,7 +244,8 @@ class StartSync:
         ):
             print("Refresh token response error")
         print(
-            f"\nApi error: {response.status_code} \nResponse content: \n {response_json}\n"
+            f"\nApi error: {response.status_code} \
+                \nResponse content: \n {response_json}\n"
         )
         return -1
 
@@ -282,7 +286,7 @@ class StartSync:
         access_token_encoded_array = [
             access_token_encoded[0:128],
             access_token_encoded[128:256],
-            access_token_encoded[256 : len(access_token_encoded)],
+            access_token_encoded[256:len(access_token_encoded)],
         ]
         # saves new access token to db
         playlistPair.spotify_token_1 = access_token_encoded_array[0]
@@ -298,7 +302,7 @@ class StartSync:
             refresh_token_encoded = refresh_token_bytes_encoded.decode("ascii")
             refresh_token_encoded_array = [
                 refresh_token_encoded[0:128],
-                refresh_token_encoded[128 : len(refresh_token_encoded)],
+                refresh_token_encoded[128:len(refresh_token_encoded)],
             ]
             # saves new refresh token to db
             playlistPair.spotify_refresh_1 = refresh_token_encoded_array[0]
@@ -315,10 +319,14 @@ class StartSync:
     def sync(playlistPairObject):
         """Syncs one Spotify and one Apple Music playlist together"""
         spotify_auth = base64.b64decode(
-            f"{playlistPairObject.spotify_token_1}{playlistPairObject.spotify_token_2}{playlistPairObject.spotify_token_3}"
+            f"{playlistPairObject.spotify_token_1}\
+                {playlistPairObject.spotify_token_2}\
+                    {playlistPairObject.spotify_token_3}"
         ).decode("ascii")
         apple_auth = base64.b64decode(
-            f"{playlistPairObject.apple_token_1}{playlistPairObject.apple_token_2}{playlistPairObject.apple_token_3}"
+            f"{playlistPairObject.apple_token_1}\
+                {playlistPairObject.apple_token_2}\
+                    {playlistPairObject.apple_token_3}"
         ).decode("ascii")
         spotify_header = {
             "Authorization": f"Bearer {spotify_auth}",
@@ -332,7 +340,8 @@ class StartSync:
         if spotifyAuthIsValid == -1:
             return [0, 0]
         if not spotifyAuthIsValid:
-            refreshSuccessful = StartSync.refreshSpotifyAuth(playlistPairObject)
+            refreshSuccessful = \
+                StartSync.refreshSpotifyAuth(playlistPairObject)
             if not refreshSuccessful:
                 return [0, 0]
             spotify_header = refreshSuccessful
@@ -353,7 +362,8 @@ class StartSync:
         # failed get songs to apis
         if spotify_songs == -1 or apple_songs == -1:
             print(
-                "Failed to get playlist songs from spotify or apple. Additional details will be in above logs."
+                "Failed to get playlist songs from spotify or apple. \
+                    Additional details will be in above logs."
             )
             return [0, 0]
 
@@ -382,7 +392,8 @@ class StartSync:
 
         if spotify_successful == -1 or apple_successful == -1:
             print(
-                "Failed to add playlist songs to spotify or apple. Additional details will be in above logs."
+                "Failed to add playlist songs to spotify or apple. \
+                    Additional details will be in above logs."
             )
             return [0, 0]
 
