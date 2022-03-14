@@ -20,15 +20,15 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
 
     steps:
-    - name: "Say Hello Mona it's Monday"
-        run: echo "$First_Name."
-        env:
-          First_Name: Wtf Mona
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: "Say Hello Mona it's Monday"
+        run: echo "$First_Name."
+        env:
+          First_Name: Wtf Mona
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
