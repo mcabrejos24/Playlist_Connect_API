@@ -9,8 +9,9 @@ from playlist_connect_api import sync
 
 class PlaylistPairsViewSet(viewsets.ModelViewSet):
     """Handles creating playlist pairs"""
+
     serializer_class = serializers.PlaylistPairsSerializer
-    queryset = models.PlaylistPairs.objects.all();
+    queryset = models.PlaylistPairs.objects.all()
 
     def create(self, request):
         """Create a new hello message"""
@@ -19,13 +20,17 @@ class PlaylistPairsViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             serializerResponse = serializer.save()
-            [apple_response, spotify_response] = sync.StartSync.sync(models.PlaylistPairs.objects.get(pk=serializerResponse.pk));
+            [apple_response, spotify_response] = sync.StartSync.sync(
+                models.PlaylistPairs.objects.get(pk=serializerResponse.pk)
+            )
             print(apple_response, spotify_response)
             if apple_response == 0 or spotify_response == 0:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            return Response({'spotify_response': str(spotify_response), 'apple_response': str(apple_response)})
-        else:
             return Response(
-                serializer.errors, 
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "spotify_response": str(spotify_response),
+                    "apple_response": str(apple_response),
+                }
             )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
