@@ -294,8 +294,8 @@ class StartSync:
         playlistPair.spotify_token_3 = access_token_encoded_array[2]
 
         # if the response generated a new refresh token
-        if (("refresh_token" in response_json) \
-            and response_json["refresh_token"] != ""):
+        if ("refresh_token" in response_json) \
+            and response_json["refresh_token"] != "":
             refresh_token = response_json["refresh_token"]
             # encodes the refresh token
             refresh_token_bytes = refresh_token.encode("ascii")
