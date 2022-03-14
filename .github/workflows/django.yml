@@ -46,7 +46,7 @@ jobs:
       run: |
         flake8 .
     - name: Run Tests
-      env:
+      with:
         DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
         APPLE_DEVELOPER_TOKEN: ${{ secrets.APPLE_DEVELOPER_TOKEN }}
         SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
