@@ -295,19 +295,23 @@ class StartSync:
 
         # if the response generated a new refresh token
         if ("refresh_token" in response_json) \
-        and response_json["refresh_token"] != "":
-            refresh_token = response_json["refresh_token"]
-            # encodes the refresh token
-            refresh_token_bytes = refresh_token.encode("ascii")
-            refresh_token_bytes_encoded = base64.b64encode(refresh_token_bytes)
-            refresh_token_encoded = refresh_token_bytes_encoded.decode("ascii")
-            refresh_token_encoded_array = [
-                refresh_token_encoded[0:128],
-                refresh_token_encoded[128:len(refresh_token_encoded)],
-            ]
-            # saves new refresh token to db
-            playlistPair.spotify_refresh_1 = refresh_token_encoded_array[0]
-            playlistPair.spotify_refresh_2 = refresh_token_encoded_array[1]
+            and response_json["refresh_token"] != "":
+                refresh_token = response_json["refresh_token"]
+                # encodes the refresh token
+                refresh_token_bytes = refresh_token.encode("ascii")
+                refresh_token_bytes_encoded = \
+                    base64.b64encode(refresh_token_bytes)
+                refresh_token_encoded = \
+                    refresh_token_bytes_encoded.decode("ascii")
+                refresh_token_encoded_array = [
+                    refresh_token_encoded[0:128],
+                    refresh_token_encoded[128:len(refresh_token_encoded)],
+                ]
+                # saves new refresh token to db
+                playlistPair.spotify_refresh_1 = \
+                    refresh_token_encoded_array[0]
+                playlistPair.spotify_refresh_2 = \
+                    refresh_token_encoded_array[1]
 
         # save new db changes
         playlistPair.save()
