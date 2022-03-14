@@ -26,7 +26,7 @@ class PlaylistPairsViewSet(viewsets.ModelViewSet):
             print(apple_response, spotify_response)
             if apple_response == 0 or spotify_response == 0:
                 return Response(
-                    serializer.errors, 
+                    serializer.errors,
                     status=status.HTTP_400_BAD_REQUEST
                 )
             return Response(
@@ -37,6 +37,6 @@ class PlaylistPairsViewSet(viewsets.ModelViewSet):
             )
         else:
             return Response(
-                serializer.errors, 
+                serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
