@@ -1,4 +1,3 @@
-
 import requests
 import base64
 import json
@@ -125,7 +124,7 @@ class StartSync:
             response = requests.get(url, headers=header, timeout=10)
             # return response content
             if response.status_code and response.content:
-                if response.status_code != 200:
+                if response.status_code >= 400:
                     print(
                         f"400 level response from {service} GET, \
                             url: {url}, code: {response.status_code}"
@@ -319,6 +318,25 @@ class StartSync:
     @staticmethod
     def sync(playlistPairObject):
         """Syncs one Spotify and one Apple Music playlist together"""
+
+        if not playlistPairObject:
+            print("No playlist pair object passed")
+            return [0, 0]
+        elif not (
+            playlistPairObject.apple_token_1 and
+            playlistPairObject.apple_token_2 and
+            playlistPairObject.apple_token_3 and
+            playlistPairObject.spotify_token_1 and
+            playlistPairObject.spotify_token_2 and
+            playlistPairObject.spotify_token_3 and
+            playlistPairObject.spotify_refresh_1 and
+            playlistPairObject.spotify_refresh_2 and
+            playlistPairObject.apple_playlist_id and
+            playlistPairObject.spotify_playlist_id
+        ):
+            print("Playlist pair object with wrong/no params")
+            return [0, 0]
+
         spotify_auth = base64.b64decode(
             f"{playlistPairObject.spotify_token_1}\
                 {playlistPairObject.spotify_token_2}\
