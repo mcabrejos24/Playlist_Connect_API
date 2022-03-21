@@ -29,7 +29,6 @@ env:
   DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
   APPLE_DEVELOPER_TOKEN: ${{ secrets.APPLE_DEVELOPER_TOKEN }}
   SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-  DELETE: ${{ secrets.delete }}
 
 jobs:
   build:
@@ -52,8 +51,6 @@ jobs:
     - name: Lint with Flake8
       run: |
         flake8 .
-    - name: mess around
-      run: echo "${{ env.DELETE }}"
     - name: Run Tests
       run: |
         python manage.py test
