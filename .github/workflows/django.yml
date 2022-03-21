@@ -33,10 +33,10 @@ env:
 jobs:
   docker_build:
     runs-on: ubuntu-latest
-  env:
-    DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
-    APPLE_DEVELOPER_TOKEN: ${{ secrets.APPLE_DEVELOPER_TOKEN }}
-    SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+    env:
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      APPLE_DEVELOPER_TOKEN: ${{ secrets.APPLE_DEVELOPER_TOKEN }}
+      SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
     steps:
     - uses: actions/checkout@v2
     - name: Build docker
