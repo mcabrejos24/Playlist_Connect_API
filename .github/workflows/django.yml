@@ -32,6 +32,19 @@ env:
 
 
 jobs:
+  docker_build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build docker
+      run: docker-compose build
+    - name: Type check
+      run: docker-compose run django mypy styleguide_example/
+    - name: Run migrations
+      run: docker-compose run django python manage.py migrate
+    - name: Run tests
+      run: docker-compose run django py.test
+      
   build:
     runs-on: ubuntu-latest
     container: node:10.18-jessie
@@ -48,6 +61,7 @@ jobs:
           DB_PASS: ${{ secrets.DB_PASS }}
         ports:
           - 5432:5432
+        # we need this because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
