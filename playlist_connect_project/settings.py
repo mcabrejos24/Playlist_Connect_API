@@ -94,11 +94,11 @@ WSGI_APPLICATION = "playlist_connect_project.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": config("DB_NAME"),
+        "NAME": "postgres",
         "USER": config("DB_USER"),
         "PASSWORD": config("DB_PASS"),
         "HOST": "127.0.0.1",
-        "PORT": config("DB_PORT"),
+        "PORT": "5432",
     }
 }
 
