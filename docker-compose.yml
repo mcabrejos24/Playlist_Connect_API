@@ -7,10 +7,9 @@ services:
       - POSTGRES_DB=styleguide_example_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-    env:
-      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
-      APPLE_DEVELOPER_TOKEN: ${{ secrets.APPLE_DEVELOPER_TOKEN }}
-      SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+      - DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
+      - APPLE_DEVELOPER_TOKEN=${{ secrets.APPLE_DEVELOPER_TOKEN }}
+      - SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
 
   rabbitmq:
     image: "rabbitmq:alpine"
