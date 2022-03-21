@@ -37,8 +37,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build docker
       run: docker-compose build
-    - name: Type check
-      run: docker-compose run django mypy styleguide_example/
     - name: Run migrations
       run: docker-compose run django python manage.py migrate
     - name: Run tests
