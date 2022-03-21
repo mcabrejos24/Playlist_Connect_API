@@ -94,25 +94,13 @@ WSGI_APPLICATION = "playlist_connect_project.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": "password",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASS"),
         "HOST": "127.0.0.1",
         "PORT": "5432",
     }
 }
-
-if os.environ.get('GITHUB_WORKFLOW'):
-    DATABASES = {
-        'default': {
-           'ENGINE': 'django.db.backends.postgresql',
-           'NAME': 'github_actions',
-           'USER': 'postgres',
-           'PASSWORD': 'postgres',
-           'HOST': '127.0.0.1',
-           'PORT': '5432',
-        }
-    }
 
 
 # Password validation
@@ -174,5 +162,5 @@ Q_CLUSTER = {
     "retry": 70,
 }
 
-# Configure Django App for Heroku.
+#  Django App for Heroku.
 django_heroku.settings(locals(), allowed_hosts=False, staticfiles=False)
