@@ -170,7 +170,7 @@ Note you will need to have a heroku account and be a memeber of the project on h
 
 Message the project administrator for access.
 
-# Heroku info
+## Heroku info
 If the site is shut down but you want to start it back up, this will have to be done on the heroku dashboard in the project directory. However, to make sure the scheduler is run on live, like it is here in development, you will need to install the [heroku cli] and navigate to your terminal to run:
 ```
 heroku ps:scale worker=1
@@ -184,7 +184,7 @@ heroku logs --tail
 This will allow you to read the logs from the live site to check for errors, processess, etc.
 
 
-# When creating a django project
+## When creating a django project
 Here are just some commands that were run when creating this Django project. It will be a reference for anyone who is curious and wants to create a Django project or another application within this Django project.
 
 ```
