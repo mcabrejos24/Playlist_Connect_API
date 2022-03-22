@@ -66,11 +66,15 @@ source ~/env/bin/activate
 ```
 and you will be good to go.
 
-Before we run our project, make sure to navigate to the 'settings.py' file in the 'playlist_connect_project' directory and change the line that says:
+Before we run our project we need to do two things. First, make sure to navigate to the 'settings.py' file in the 'playlist_connect_project' directory and change the line that says:
 ```
 DEBUG = False
 ```
-to 'True'. Then you're ready to run the project locally.
+to 'True'.
+
+Second, you will need to add a '.env' file to the project root directory with specific environment variables. To access these variables, reach out to the project administrator.
+
+Then you're ready to run the project locally.
 
 To run our project locally, run:
 ```
