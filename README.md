@@ -152,6 +152,17 @@ to run your scheduler.
 
 You will see print statements in this terminal every minute (or however long you chose to run the scheduler) with information on if your model instances were successfully synced.
 
+## Running and Adding Tests
+To run tests, run:
+```
+python manage.py tests
+```
+This will run all of the tests in the project.
+
+To add tests, navigate to the 'tests.py' file under the 'playlist_connect_api' folder.
+
+The 'TestCase' library for Django is used here. Append any tests to the bottom of this file.
+
 
 ## Contributing
 If you would like to contribute to this project, branch off from the master branch, make your changes, and submit a pull request.
