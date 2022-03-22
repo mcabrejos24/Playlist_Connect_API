@@ -6,6 +6,8 @@ An alternative way of using the project is for when you are switching services y
 
 Playlist Pair is accessible at [playlistpair.com]
 
+The frontend of the project is accessible at [Playlist Pair Frontend].
+
 ## Getting Started
 
 This project uses [git], [vagrant] and [virtualbox]. Make sure these are all downloaded for your appropriate machine before continuing.
@@ -204,3 +206,4 @@ To enable a newly created app, navigate to settings.py under the playlist_connec
 [heroku playlistpair]: https://dashboard.heroku.com/apps/playlistpairapi
 [heroku]: https://heroku.com/
 [heroku cli]: https://devcenter.heroku.com/articles/heroku-cli
+[Playlist Pair Frontend]: https://github.com/mcabrejos24/Playlist_Pair
