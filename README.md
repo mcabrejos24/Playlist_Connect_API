@@ -165,7 +165,13 @@ The 'TestCase' library for Django is used here. Append any tests to the bottom o
 
 
 ## Contributing
-If you would like to contribute to this project, branch off from the master branch, make your changes, and submit a pull request.
+
+If you would like to contribute to this project, branch off from the master branch and name your branches accordingly:
+- new features:         feature/<name of feature>
+- bug fixes:            fix/<name of fix>
+- simple updates:       chore/<name of the update>
+
+Once you make your changes on your new brach, commit and submit a pull request.
 
 Note: DON'T FORGET TO CHANGE
 ```
