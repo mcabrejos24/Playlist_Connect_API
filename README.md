@@ -217,10 +217,10 @@ django-admin.py startproject playlist_connect_project
 python manage.py startapp playlist_connect_api
 ```
 To enable a newly created app, navigate to settings.py under the playlist_connect_project directory and:
-    - add 'rest_framework' to INSTALLED_APPS
-    - add 'rest_framework.authtoken' to INSTALLED_APPS
-    - add {new_app_name} TO INSTALLED_APPS
-    - add a trailing comma ',' at the end of each line
+- add 'rest_framework' to INSTALLED_APPS
+- add 'rest_framework.authtoken' to INSTALLED_APPS
+- add {new_app_name} TO INSTALLED_APPS
+- add a trailing comma ',' at the end of each line
 
 [playlistpair.com]: https://playlistpair.com
 [vagrant]: https://www.vagrantup.com/downloads
