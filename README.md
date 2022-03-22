@@ -155,7 +155,7 @@ You will see print statements in this terminal every minute (or however long you
 ## Running and Adding Tests
 To run tests, run:
 ```
-python manage.py tests
+python manage.py test
 ```
 This will run all of the tests in the project.
 
