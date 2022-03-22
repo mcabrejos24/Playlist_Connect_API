@@ -183,11 +183,11 @@ DEBUG = True
 ```
 back to 'False'
 
-Tests will run against your changes. If they do not pass, read the log to see why they failed. If they pass then request a review from mcabrejos24.
+Tests will run against your changes. If they do not pass, read the log to see why they failed. If they pass then request a review from @mcabrejos24.
 
 Once a review has been submitted and approved, you may merge the pull request.
 
-This project is hosted on [heroku] and can be access here at [heroku playlistpair].
+This project is hosted on [heroku] and can be accessed here at [heroku playlistpair].
 
 Note you will need to have a heroku account and be a memeber of the project on heroku to access it.
 
